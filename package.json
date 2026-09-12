@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test --experimental-strip-types lib/sm2.test.ts"
+    "test": "node --test --experimental-strip-types lib/sm2.test.ts lib/topic-tree.test.ts lib/seed-integrity.test.ts",
+    "seed:sql": "node --experimental-strip-types scripts/emit-seed-sql.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

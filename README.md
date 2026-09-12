@@ -11,10 +11,12 @@ npm run dev
 
 בלי משתני סביבה של Supabase האפליקציה נפתחת במצב מקומי (demo): כניסה אחת, תוכן ראשוני, ושמירת התקדמות בקובץ `data/.demo-state.json`.
 
+יש שמונה פרקי לימוד עם תתי-נושאים. תשעה שיעורים מפורסמים ללמידה, ועוד שיעורים בטיוטה/בדיקה לפאנל הניהול.
+
 ## חיבור ל-Supabase
 
 1. צרי פרויקט Supabase.
-2. הריצי את `supabase/migrations/001_schema.sql` ואחר כך את `supabase/seed.sql`.
+2. הריצי את `supabase/migrations/001_schema.sql`, ואם הסכימה כבר הותקנה בעבר גם את `002_topic_tree.sql`. אחר כך את `supabase/seed.sql`.
 3. העתיקי `.env.example` ל-`.env.local` ומלאי:
 
 ```
@@ -24,7 +26,7 @@ SUPABASE_SERVICE_ROLE_KEY=
 ADMIN_EMAIL=
 ```
 
-`SUPABASE_SERVICE_ROLE_KEY` נשאר בשרת בלבד. אחרי ההרשמה הראשונה סמני מנהלת:
+`SUPABASE_SERVICE_ROLE_KEY` נשאר בשרת בלבד. אם `ADMIN_EMAIL` תואם לאימייל שנרשמת איתו, הפרופיל מסומן כמנהלת אוטומטית (דורש service role). אחרת:
 
 ```sql
 update public.profiles set is_admin = true where id = '<user-id>';

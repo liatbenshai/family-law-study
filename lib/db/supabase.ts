@@ -1,6 +1,8 @@
 import { getAdminEmail } from "@/lib/env";
 import { applySm2, type GradeQuality } from "@/lib/sm2";
+import { createServiceRoleClient } from "@/lib/supabase/admin";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { topicSubtreeIds } from "@/lib/topic-tree";
 import type {
   CaseStudy,
   ContentStatus,
@@ -20,6 +22,7 @@ function mapTopic(row: {
   title: string;
   description: string;
   sort_order: number;
+  parent_id: string | null;
 }): Topic {
   return {
     id: row.id,
@@ -27,6 +30,7 @@ function mapTopic(row: {
     title: row.title,
     description: row.description,
     sortOrder: row.sort_order,
+    parentId: row.parent_id,
   };
 }
 
@@ -130,9 +134,19 @@ export async function getProfile(): Promise<Profile | null> {
     .maybeSingle();
 
   const adminEmail = getAdminEmail();
-  const isAdmin =
-    Boolean(data?.is_admin) ||
-    (adminEmail !== null && user.email?.toLowerCase() === adminEmail);
+  const emailIsAdmin = adminEmail !== null && user.email?.toLowerCase() === adminEmail;
+  const isAdmin = Boolean(data?.is_admin) || emailIsAdmin;
+
+  if (emailIsAdmin && data && !data.is_admin) {
+    try {
+      await createServiceRoleClient()
+        .from("profiles")
+        .update({ is_admin: true })
+        .eq("id", user.id);
+    } catch {
+      // Demo or missing service role: UI still treats the configured email as admin.
+    }
+  }
 
   return {
     id: user.id,
@@ -146,7 +160,7 @@ export async function getTopics(): Promise<Topic[]> {
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase
     .from("topics")
-    .select("id, slug, title, description, sort_order")
+    .select("id, slug, title, description, sort_order, parent_id")
     .order("sort_order");
   if (error) throw error;
   return (data ?? []).map(mapTopic);
@@ -156,7 +170,7 @@ export async function getTopicBySlug(slug: string): Promise<Topic | null> {
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase
     .from("topics")
-    .select("id, slug, title, description, sort_order")
+    .select("id, slug, title, description, sort_order, parent_id")
     .eq("slug", slug)
     .maybeSingle();
   if (error) throw error;
@@ -166,14 +180,17 @@ export async function getTopicBySlug(slug: string): Promise<Topic | null> {
 export async function getLessonsForTopic(
   topicId: string,
   includeUnpublished: boolean,
+  includeDescendants = false,
 ): Promise<Lesson[]> {
   const supabase = await createServerSupabaseClient();
+  const allTopics = includeDescendants ? await getTopics() : [];
+  const topicIds = includeDescendants ? topicSubtreeIds(allTopics, topicId) : [topicId];
   let query = supabase
     .from("lessons")
     .select(
       "id, topic_id, title, intro, estimated_minutes, sources, status, sort_order",
     )
-    .eq("topic_id", topicId)
+    .in("topic_id", topicIds)
     .order("sort_order");
   if (!includeUnpublished) {
     query = query.eq("status", "published");

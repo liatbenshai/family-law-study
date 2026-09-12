@@ -22,8 +22,12 @@ export async function getTopicBySlug(slug: string) {
   return repo().getTopicBySlug(slug);
 }
 
-export async function getLessonsForTopic(topicId: string, includeUnpublished: boolean) {
-  return repo().getLessonsForTopic(topicId, includeUnpublished);
+export async function getLessonsForTopic(
+  topicId: string,
+  includeUnpublished: boolean,
+  includeDescendants = false,
+) {
+  return repo().getLessonsForTopic(topicId, includeUnpublished, includeDescendants);
 }
 
 export async function getLesson(id: string, includeUnpublished: boolean) {

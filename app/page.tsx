@@ -3,6 +3,7 @@ import { AppShell } from "@/components/app-shell";
 import { EmptyState } from "@/components/empty-state";
 import { requireUser } from "@/lib/auth";
 import { getDueReviews, getLessonsForTopic, getProgress, getTopics } from "@/lib/db";
+import { parentTopics } from "@/lib/topic-tree";
 
 export default async function HomePage() {
   const user = await requireUser();
@@ -15,14 +16,20 @@ export default async function HomePage() {
   const completedIds = new Set(
     progress.filter((item) => item.completedAt).map((item) => item.lessonId),
   );
+  const parents = parentTopics(topics);
 
   let nextLesson: { id: string; title: string } | null = null;
-  for (const topic of topics) {
-    const lessons = await getLessonsForTopic(topic.id, false);
-    const open = lessons.find((lesson) => !completedIds.has(lesson.id));
-    if (open) {
-      nextLesson = { id: open.id, title: open.title };
-      break;
+  const topicRows = [];
+  for (const topic of parents) {
+    const lessons = await getLessonsForTopic(topic.id, false, true);
+    topicRows.push({
+      topic,
+      total: lessons.length,
+      completed: lessons.filter((lesson) => completedIds.has(lesson.id)).length,
+    });
+    if (!nextLesson) {
+      const open = lessons.find((lesson) => !completedIds.has(lesson.id));
+      if (open) nextLesson = { id: open.id, title: open.title };
     }
   }
 
@@ -57,13 +64,13 @@ export default async function HomePage() {
       </div>
 
       <h2 className="mt-10 text-xl font-medium">נושאים</h2>
-      {topics.length === 0 ? (
+      {topicRows.length === 0 ? (
         <div className="mt-4">
           <EmptyState title="אין נושאים עדיין" body="אפשר להוסיף תוכן מפאנל הניהול." />
         </div>
       ) : (
         <ul className="mt-4 space-y-3">
-          {topics.map((topic) => (
+          {topicRows.map(({ topic, completed, total }) => (
             <li key={topic.id}>
               <Link
                 href={`/topics/${topic.slug}`}
@@ -71,6 +78,9 @@ export default async function HomePage() {
               >
                 <h3 className="text-lg font-medium">{topic.title}</h3>
                 <p className="mt-2 text-sm leading-6 text-muted">{topic.description}</p>
+                <p className="mt-3 text-sm text-muted">
+                  {completed} מתוך {total} שיעורים
+                </p>
               </Link>
             </li>
           ))}

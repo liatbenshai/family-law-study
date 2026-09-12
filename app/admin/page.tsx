@@ -3,11 +3,12 @@ import { AppShell } from "@/components/app-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { requireAdmin } from "@/lib/auth";
 import { getAllLessons, getTopics } from "@/lib/db";
+import { topicPathLabel } from "@/lib/topic-tree";
 
 export default async function AdminPage() {
   const user = await requireAdmin();
   const [lessons, topics] = await Promise.all([getAllLessons(), getTopics()]);
-  const topicTitle = new Map(topics.map((topic) => [topic.id, topic.title]));
+  const topicTitle = new Map(topics.map((topic) => [topic.id, topicPathLabel(topics, topic)]));
 
   return (
     <AppShell user={user}>

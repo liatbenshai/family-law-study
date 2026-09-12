@@ -13,6 +13,7 @@ export type Topic = {
   title: string;
   description: string;
   sortOrder: number;
+  parentId: string | null;
 };
 
 export type Lesson = {

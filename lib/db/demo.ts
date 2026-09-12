@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { cases, DEMO_USER_ID, lessons, questions, topics } from "@/data/seed";
 import { applySm2, type GradeQuality } from "@/lib/sm2";
+import { topicSubtreeIds } from "@/lib/topic-tree";
 import type {
   Attempt,
   CaseStudy,
@@ -27,6 +28,13 @@ type DemoState = {
   attempts: Attempt[];
 };
 
+function mergeById<T extends { id: string }>(seed: T[], saved: T[] | undefined): T[] {
+  const savedItems = saved ?? [];
+  const seedIds = new Set(seed.map((item) => item.id));
+  const extras = savedItems.filter((item) => !seedIds.has(item.id));
+  return structuredClone([...seed, ...extras]);
+}
+
 function defaultState(): DemoState {
   return {
     profile: {
@@ -48,10 +56,14 @@ function readState(): DemoState {
   try {
     const raw = fs.readFileSync(STATE_PATH, "utf8");
     const parsed = JSON.parse(raw) as DemoState;
+    const defaults = defaultState();
     return {
-      ...defaultState(),
+      ...defaults,
       ...parsed,
-      profile: { ...defaultState().profile, ...parsed.profile },
+      profile: { ...defaults.profile, ...parsed.profile },
+      lessons: mergeById(defaults.lessons, parsed.lessons),
+      questions: mergeById(defaults.questions, parsed.questions),
+      cases: mergeById(defaults.cases, parsed.cases),
     };
   } catch {
     return defaultState();
@@ -85,12 +97,14 @@ export async function getTopicBySlug(slug: string): Promise<Topic | null> {
 export async function getLessonsForTopic(
   topicId: string,
   includeUnpublished: boolean,
+  includeDescendants = false,
 ): Promise<Lesson[]> {
   const state = readState();
+  const topicIds = includeDescendants ? topicSubtreeIds(topics, topicId) : [topicId];
   return state.lessons
     .filter(
       (lesson) =>
-        lesson.topicId === topicId &&
+        topicIds.includes(lesson.topicId) &&
         (includeUnpublished || lesson.status === "published"),
     )
     .sort((a, b) => a.sortOrder - b.sortOrder);

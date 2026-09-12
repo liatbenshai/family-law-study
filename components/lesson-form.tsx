@@ -1,4 +1,5 @@
 import { upsertLesson } from "@/app/actions/admin";
+import { topicPathLabel } from "@/lib/topic-tree";
 import type { Lesson, Topic } from "@/lib/types";
 
 export function LessonForm({
@@ -8,6 +9,10 @@ export function LessonForm({
   topics: Topic[];
   lesson?: Lesson;
 }) {
+  const options = [...topics].sort((a, b) =>
+    topicPathLabel(topics, a).localeCompare(topicPathLabel(topics, b), "he"),
+  );
+
   return (
     <form action={upsertLesson} className="space-y-4">
       {lesson ? <input type="hidden" name="id" value={lesson.id} /> : null}
@@ -19,9 +24,9 @@ export function LessonForm({
           required
           className="w-full rounded-xl border border-border bg-card px-3 py-2"
         >
-          {topics.map((topic) => (
+          {options.map((topic) => (
             <option key={topic.id} value={topic.id}>
-              {topic.title}
+              {topicPathLabel(topics, topic)}
             </option>
           ))}
         </select>
