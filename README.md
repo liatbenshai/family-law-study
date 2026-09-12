@@ -33,6 +33,23 @@ Following the official `@supabase/ssr` pattern for the Next.js App Router:
 - `lib/supabase/server.ts` — server client (Server Components, Actions, Route
   Handlers), wired to Next.js cookies.
 
+## Database (Supabase)
+
+- `supabase/migrations/` — SQL migrations. The initial migration defines the
+  schema (`topics`, `lessons`, `questions`, `attempts`, `review_cards`,
+  `content_updates`), enables Row Level Security on every table, and adds
+  policies: users read/write only their own `attempts` and `review_cards`;
+  content tables are readable by any authenticated user and writable only via
+  the `service_role` key.
+- `supabase/seed.sql` — seeds the topic tree (8 parent topics and their
+  sub-topics). Idempotent on the unique `slug`.
+
+Apply locally with the Supabase CLI:
+
+```bash
+supabase db reset   # runs migrations, then seed.sql
+```
+
 ## Scripts
 
 | Script          | Description                       |
