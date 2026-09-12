@@ -11,7 +11,7 @@ export function AppShell({
 }) {
   return (
     <div className="mx-auto flex min-h-full max-w-3xl flex-col px-4 pb-16 pt-6">
-      <header className="mb-8 flex items-start justify-between gap-4">
+      <header className="mb-8 flex flex-wrap items-center gap-x-5 gap-y-3">
         <div>
           <p className="text-sm text-muted">לימוד עצמי</p>
           <Link href="/" className="text-2xl font-semibold tracking-tight">
@@ -33,12 +33,12 @@ export function AppShell({
               ניהול
             </Link>
           ) : null}
-          <form action={signOut}>
-            <button type="submit" className="text-muted hover:text-foreground">
-              יציאה
-            </button>
-          </form>
         </nav>
+        <form action={signOut} className="ms-auto">
+          <button type="submit" className="text-sm text-muted hover:text-foreground">
+            יציאה
+          </button>
+        </form>
       </header>
       <main className="flex-1">{children}</main>
       <footer className="mt-12 border-t border-border pt-4 text-sm leading-6 text-muted">

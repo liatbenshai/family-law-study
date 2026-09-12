@@ -16,13 +16,13 @@ export default async function TopicPage({
   if (!topic) notFound();
 
   const [lessons, progress] = await Promise.all([
-    getLessonsForTopic(topic.id, user.isAdmin),
+    getLessonsForTopic(topic.id, false),
     getProgress(user.id),
   ]);
   const completedIds = new Set(
     progress.filter((item) => item.completedAt).map((item) => item.lessonId),
   );
-  const visible = user.isAdmin ? lessons : lessons.filter((lesson) => lesson.status === "published");
+  const visible = lessons.filter((lesson) => lesson.status === "published");
 
   return (
     <AppShell user={user}>
@@ -38,7 +38,7 @@ export default async function TopicPage({
               lesson={lesson}
               href={`/lessons/${lesson.id}`}
               completed={completedIds.has(lesson.id)}
-              showStatus={user.isAdmin}
+              showStatus={false}
             />
           ))
         )}

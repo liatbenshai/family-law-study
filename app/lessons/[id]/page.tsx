@@ -15,6 +15,8 @@ export default async function LessonPage({
   if (!lesson) notFound();
   if (lesson.status !== "published" && !user.isAdmin) notFound();
 
+  const isPreview = lesson.status !== "published";
+
   await markLessonVisited(user.id, lesson.id);
   const [questions, caseStudy] = await Promise.all([
     getQuestions(lesson.id),
@@ -23,6 +25,11 @@ export default async function LessonPage({
 
   return (
     <AppShell user={user}>
+      {isPreview ? (
+        <p className="mb-4 rounded-xl bg-amber-50 px-4 py-2 text-sm text-warning">
+          תצוגה מקדימה. השיעור עדיין לא מפורסם ללמידה.
+        </p>
+      ) : null}
       <LessonSession
         lesson={lesson}
         questions={questions}

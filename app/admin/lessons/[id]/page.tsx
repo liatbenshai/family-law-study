@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { CaseForm } from "@/components/case-form";
 import { LessonForm } from "@/components/lesson-form";
@@ -26,9 +27,12 @@ export default async function AdminLessonPage({
 
   return (
     <AppShell user={user}>
-      <div className="mb-6 flex items-center gap-3">
+      <div className="mb-6 flex flex-wrap items-center gap-3">
         <h1 className="text-3xl font-semibold">עריכת שיעור</h1>
         <StatusBadge status={lesson.status} />
+        <Link href={`/lessons/${lesson.id}`} className="text-sm text-accent">
+          תצוגה מקדימה
+        </Link>
       </div>
       <div className="space-y-10">
         <LessonForm topics={topics} lesson={lesson} />
